@@ -220,7 +220,16 @@ class Translator(nn.Module):
             self.token_encoder = self.text_tokenizer.create_encoder(
                 task="translation", lang=src_lang, mode="source", device=self.device
             )
-            src = self.collate(self.token_encoder(text))
+            results = []
+            for text in input:
+                aa = self.collate(self.token_encoder(text))
+                results.append(aa)
+
+            src = {
+                'is_ragged': False,
+                'seqs': torch.cat([result['seqs'] for result in results], dim=0),
+                'seq_lens': torch.cat([result['seq_lens'] for result in results], dim=0)
+            }
 
         result = self.get_prediction(
             self.model,
