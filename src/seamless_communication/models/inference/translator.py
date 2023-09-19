@@ -221,9 +221,19 @@ class Translator(nn.Module):
                 task="translation", lang=src_lang, mode="source", device=self.device
             )
             results = []
+            max_len=0
             for text in input:
                 aa = self.collate(self.token_encoder(text))
                 results.append(aa)
+                if aa['seq_lens']> max_len:
+                    max_len = aa['seq_lens']
+
+
+            # pad results seqs with 0, seq_lens with max_len
+            for result in results:
+                result['seqs'] = torch.cat([result['seqs'], torch.zeros((max_len - len(result['seqs']), result['seqs'].shape[1]), dtype=torch.long)], dim=0)
+                print(results[0]['seqs'].shape)
+
 
             src = {
                 'is_ragged': False,
